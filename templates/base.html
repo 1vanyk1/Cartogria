@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+          integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+          crossorigin="anonymous">
+    <link rel="stylesheet" href="/static/css/style.css" />
+    <title>Картогрия</title>
+</head>
+<body>
+    <div>
+        <table width="100%">
+            <tr style="background:LightGray">
+                <td width="20%">
+                    <img width="80" src="/static/img/logo.png" alt="Error 404">
+                </td>
+                <td width="60%" style="text-align:center">
+                    <div>
+                        <font size="7" color="black" face="Algerian">Карты регионов по датам</font>
+                    </div>
+                </td>
+                <td width="20%" style="text-align:right">
+                    {% if current_user.is_authenticated %}
+                        <p align="right">
+                            <a><font size="5" color="black">{{ current_user.login }}</font></a>
+                            <a class="btn btn-primary" href="/{{lang}}/logout">Выйти</a>
+                        </p>
+                    {% else %}
+                        <p align="right">
+                            <a class="btn btn-primary " href="/{{lang}}/register">Зарегистрироваться</a>
+                            <a class="btn btn-success" href="/{{lang}}/login">Войти</a>
+                        </p>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+    </div>
+    <main role="main" class="container">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
