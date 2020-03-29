@@ -11,7 +11,7 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     __tablename__ = 'users'
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
-    login = sqlalchemy.Column(sqlalchemy.String)
+    login = sqlalchemy.Column(sqlalchemy.String, unique=True)
     email = sqlalchemy.Column(sqlalchemy.String, unique=True)
     hashed_password = sqlalchemy.Column(sqlalchemy.String)
     modified_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now)
