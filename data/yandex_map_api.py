@@ -7,7 +7,8 @@ def get_map(toponym_coodrinates, corners, map_type='sat', pt=None):
     params = {"ll": toponym_coodrinates,
               "z": corners,
               "l": map_type,
-              'size': '600,450'}
+              'size': '600,450',
+              'pt': '47.05047812901647,85.55901918847962,org'}
     if pt is not None:
         params['pt'] = pt
     request = requests.get(api_server, params=params)
@@ -16,9 +17,8 @@ def get_map(toponym_coodrinates, corners, map_type='sat', pt=None):
 
 def get_map_source(x, y, corners):
     map_source = "http://static-maps.yandex.ru/1.x/?ll=" + ','.join([x, y]) + '&z=' + \
-                 corners + '&l=map&size=600,450'
+                 corners + '&l=map&size=600,450&pt=76.331270,40.360061,org'
     return map_source
-
 
 
 def search(geocode):

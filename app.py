@@ -11,11 +11,14 @@ from flask import make_response, jsonify
 from data import yandex_map_api
 import datetime
 import svgwrite
-import json
-import flask
+import hashlib
+import io
 from requests import get
+import math
+from wand.api import library
+import wand.color
+import wand.image
 app = Flask(__name__)
-app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 300
 app.config['SECRET_KEY'] = 'DB92086F79CA157AE381C444751FA8'
 app.config['PERMANENT_SESSION_LIFETIME'] = datetime.timedelta(days=365)
 login_manager = LoginManager()
@@ -24,11 +27,51 @@ current_user_id = None
 redirect("/") #"myDrawing"
 # blueprint = flask.Blueprint('main_api', __name__,
 #                             template_folder='templates')
+#       0   1   2   3   4   5   6   7   8   9   10  11  12
+delt = [10, 10, 10, 10, 10, 10, 10, 10, 10, 25, 50, 10, 200]
+borders = [[83.03230907439217, 47.22370511070028], [85.55901918847962, 47.05047812901647], [93.7756279333089, 40.67117019527163]]
+test = [[85.529764, 47.059125], [83.030796, 47.212243], [79.852264, 44.904618], [80.283950, 42.060340], [76.331270, 40.360061], [93.7756279333089, 40.67117019527163]]
+
+
+def session_test():
+    if 'cord_x' in session:
+        session['cord_x'] = 85
+    if not 'cord_y' in session:
+        session['cord_y'] = 41.3
+    if not 'zoom' in session:
+        session['zoom'] = 6
+    return session['cord_x'], session['cord_y'], session['zoom']
+
+
+def generate_map(x, y, zoom):
+    x = float(x)
+    y = float(y)
+    zoom = int(zoom)
+    delta_y = 445 / (2 ** zoom)
+    delta_x = 843 / (2 ** zoom)
+    if zoom > 4:
+        k = 1
+    else:
+        k = 6 - zoom
+    print(math.cos(math.radians((y - test[1][1]) / 2)))
+    #  - (y - i[1]) * (200 / (2 ** (12 - zoom)))
+    print(90 - test[1][1], test[1][1], 90 - y, y, (180 - y - test[1][1]) / 2)
+    points = [(300 * (delta_x + 2 * i[0] - 2 * x) / delta_x, 225 * (2 * y - 2 * i[1]) / delta_y + 225) for i in test]
+    print(points)
+    print(y - test[1][1], delta_y)
+    print(zoom)
+    dwg = svgwrite.Drawing('static/svg/test.svg', profile='tiny')
+    dwg.add(dwg.image(insert=(0, 0), size=(600, 450),
+                      href=yandex_map_api.get_map_source(str(x), str(y), str(zoom))))
+    dwg.add(dwg.rect(insert=(0, 0), size=(600, 450), fill='black', opacity=0, id="delta"))
+    dwg.add(dwg.polygon(points=points, fill='black', opacity=0.1))
+    # dwg.add(dwg.circle(center=points[1], r=5, fill='black'))
+    dwg.add(dwg.circle(center=(test[1][0], 225), r=5, fill='red'))
+    dwg.save()
 
 
 @app.route('/api/get_click_pos/<int:x>/<int:y>', methods=['POST'])
-def edit_user(x, y):
-    print(x, y)
+def get_click_pos(x, y):
     if not 'cord_x' in session:
         session['cord_x'] = 85
     if not 'cord_y' in session:
@@ -39,42 +82,33 @@ def edit_user(x, y):
     dwg.add(dwg.image(insert=(0, 0), size=(600, 450), href=yandex_map_api.get_map_source(str(session['cord_x']), str(session['cord_y']),
                                                  str(session['zoom']))))
     dwg.add(dwg.rect(insert=(0, 0), size=(600, 450), fill='black', opacity=0, id="delta"))
-    dwg.add(dwg.rect(insert=(x, y), size=(x + 1, y + 1), fill='black', opacity=1, id="delta"))
     dwg.save()
+    print(x, y)
     return jsonify({'success': 'OK'})
 
 
-# @app.route('/api/get_image', methods=['GET'])
-# def edit_user():
-#     d = drawSvg.Drawing(200, 100, origin='center')
-#
-#     d.append(drawSvg.Lines(-80, -45,
-#                         70, -49,
-#                         95, 49,
-#                         -90, 40,
-#                         close=False,
-#                         fill='#eeee00',
-#                         stroke='black'))
-#
-#     d.append(drawSvg.Rectangle(0, 0, 40, 50, fill='#1248ff'))
-#     d.append(drawSvg.Circle(-40, -10, 30,
-#                          fill='red', stroke_width=2, stroke='black'))
-#
-#     p = drawSvg.Path(stroke_width=2, stroke='green',
-#                   fill='black', fill_opacity=0.5)
-#     p.M(-30, 5)  # Start path at point (-30, 5)
-#     p.l(60, 30)  # Draw line to (60, 30)
-#     p.h(-70)  # Draw horizontal line to x=-70
-#     p.Z()  # Draw line to start
-#     d.append(p)
-#
-#     d.append(drawSvg.ArcLine(60, -20, 20, 60, 270,
-#                           stroke='red', stroke_width=5, fill='red', fill_opacity=0.2))
-#     d.append(drawSvg.Arc(60, -20, 20, 60, 270, cw=False,
-#                       stroke='green', stroke_width=3, fill='none'))
-#     d.append(drawSvg.Arc(60, -20, 20, 270, 60, cw=True,
-#                       stroke='blue', stroke_width=1, fill='black', fill_opacity=0.3))
-#     return d
+@app.route('/api/get_image.svg')
+def get_image():
+    if not 'cord_x' in session:
+        session['cord_x'] = 85
+    if not 'cord_y' in session:
+        session['cord_y'] = 41.3
+    if not 'zoom' in session:
+        session['zoom'] = 6
+    dwg = svgwrite.Drawing(profile='tiny', size=(600, 450))
+    dwg.add(dwg.image(insert=(0, 0), size=(600, 450),
+                      href=yandex_map_api.get_map_source(str(session['cord_x']),
+                                                         str(session['cord_y']),
+                                                         str(session['zoom']))))
+    dwg.add(dwg.rect(id="delta", insert=(0, 0), size=(600, 450), fill='black', opacity=0.5))
+    badge = io.StringIO()
+    dwg.write(badge)
+    response = make_response(badge.getvalue())
+    response.headers['Content-Type'] = 'image/svg+xml'
+    response.headers['Cache-Control'] = 'no-cache'
+    etag = hashlib.sha1(dwg.tostring().encode('utf-8')).hexdigest()
+    response.set_etag(etag)
+    return response
 
 
 @app.errorhandler(404)
@@ -156,12 +190,13 @@ def add_header(response):
 
 @app.route('/<lang>/change_zoom/<int:n>')
 def change_zoom(lang, n):
+    print(session)
     if n == 1:
         session['zoom'] += 1
     else:
         session['zoom'] -= 1
-    if session['zoom'] > 18:
-        session['zoom'] = 18
+    if session['zoom'] > 10:
+        session['zoom'] = 10
     elif session['zoom'] < 1:
         session['zoom'] = 1
     return redirect("/" + lang)
@@ -179,11 +214,8 @@ def home_page(lang):
     param['lang'] = lang
     param['map'] = yandex_map_api.get_map_source(str(session['cord_x']), str(session['cord_y']),
                                                  str(session['zoom']))
-    # dwg = svgwrite.Drawing('static/svg/test.svg', profile='tiny')
-    # dwg.add(dwg.image(insert=(0, 0), size=(600, 450), href=param['map']))
-    # dwg.add(dwg.rect(insert=(0, 0), size=(600, 450), fill='black', opacity=0, id="delta"))
-    # dwg.save()
-    print(param['map'])
+    generate_map(str(session['cord_x']), str(session['cord_y']), str(session['zoom']))
+    param['res'] = get('http://localhost:5000/api/get_image.svg')
     res = Response(render_template('home_page.html', **param))
     return res
 

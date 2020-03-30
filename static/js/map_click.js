@@ -7,6 +7,7 @@
 //    a.dispatchEvent(evt);
 //}
 
+
 function UserAction(x, y) {
     var request = new XMLHttpRequest();
     request.onreadystatechange = function() {
@@ -35,4 +36,16 @@ function handleEvent(e){
     }
     UserAction(clickX, clickY);
     return false;
+}
+
+
+function MoveMapDown(lang, side) {
+    var request = new XMLHttpRequest();
+    request.onreadystatechange = function() {
+         if (this.readyState == 4 && this.status == 200) {
+             alert(this.responseText);
+         }
+    };
+    request.open("GET", "http://localhost:5000/ru/move/2", true);
+    request.send();
 }
