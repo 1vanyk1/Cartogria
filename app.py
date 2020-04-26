@@ -291,6 +291,7 @@ def generate_map(x, y, zoom, user_id):  # Создаём карту
             position.point_id = None  # Снимаем выделение, если нет метки
             session.commit()
         x, y, zoom = float(x), float(y), int(zoom)  # Позиция пользователя
+        open(f'static/svg/{user_id}.svg', 'a').close()
         dwg = svgwrite.Drawing(f'static/svg/{user_id}.svg', profile='tiny')
         p, p2, rounds = [], [], []          # /\ Файл с обрабоанной карты
         r, g, b, name = '00', '00', '00', ''
