@@ -61,7 +61,7 @@ function change_status(status, user_id) {
 
 
 function remove_last_point(user_id, e) {
-    if (event.which == 1) {
+    if (event.which == 3) {
         var request = new XMLHttpRequest();
         request.responseType = 'json'
         request.onreadystatechange = function() {
