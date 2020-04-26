@@ -1,4 +1,4 @@
-from flask import Flask, render_template, redirect, request, session, Response
+from flask import Flask, render_template, redirect, request, Response
 try:  # Импортирование заголовков
     from flask_headers import headers
 except BaseException:
