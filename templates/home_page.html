@@ -7,7 +7,6 @@
     <meta http-equiv="expires" content="0" />
     <meta http-equiv="expires" content="Tue, 01 Jan 1980 1:00:00 GMT" />
     <meta http-equiv="pragma" content="no-cache" />
-    <script type="text/javascript" src="/static/js/mc17.js"></script>
 </head>
 <body>
     <div>
@@ -55,19 +54,155 @@
                         </tr>
                     </table>
                 </td>
-                <td width="606" height="456" style="text-align:center">
-                    <object data="/static/svg/test.svg" type="image/svg+xml"
+                <!--background="{{bg_map}}"-->
+                <td width="600" height="450" style="text-align:center" background="{{bg_map}}">
+                    <object data="/static/svg/{{user_id}}.svg" type="image/svg+xml"
                      id="alphasvg" width="100%" height="100%"></object>
+                    <script type="text/javascript" src="/static/js/map_click.js"></script>
                     <script>
                         document.addEventListener("DOMContentLoaded", function(){
                             var a = document.getElementById("alphasvg");
                             a.addEventListener("load",function(){
                                 var svgDoc = a.contentDocument;
-                                var delta = svgDoc.getElementById("delta");
-                                delta.addEventListener("mousemove", handleEvent, false);
+                                var delta = svgDoc.querySelector("#delta");
+                                delta.addEventListener("mousedown", click_on_item.bind(null, {{status}}, {{cord_x}}, {{cord_y}}, {{zoom}}, {{user_id}}, -1, {{elem_selected}}, {{rounds}}), false);
+                                delta.addEventListener("mouseup", mouse_up.bind(null, {{status}}, {{cord_x}}, {{cord_y}}, {{zoom}}, {{user_id}}, {{rounds}}), false);
+                                for (var i in {{count_of_pols}}) {
+                                    var pol = svgDoc.querySelector("#a" + {{count_of_pols}}[i]);
+                                    pol.addEventListener("mousedown", click_on_item.bind(null, {{status}}, {{cord_x}}, {{cord_y}}, {{zoom}}, {{user_id}}, {{count_of_pols}}[i], {{elem_selected}}, {{rounds}}), false);
+                                    pol.addEventListener("mouseup", mouse_up.bind(null, {{status}}, {{cord_x}}, {{cord_y}}, {{zoom}}, {{user_id}}, {{rounds}}), false);
+                                }
+                                for (var i in {{mark_ids}}) {
+                                    var pol = svgDoc.querySelector("#m" + {{mark_ids}}[i]);
+                                    pol.addEventListener("mousedown", click_on_mark.bind(null, {{user_id}}, {{mark_ids}}[i]), false);
+                                    pol.addEventListener("mouseup", mouse_up.bind(null, {{status}}, {{cord_x}}, {{cord_y}}, {{zoom}}, {{user_id}}, {{rounds}}), false);
+                                }
+                                if ({{elem_selected}} != -1 && {{status}} == 1 && {{rounds}} != 'None') {
+                                    for (var j in {{points}}) {
+                                        var pol = svgDoc.querySelector("#b" + j);
+                                        pol.addEventListener("mousedown", click_on_point.bind(null, {{status}}, {{cord_x}}, {{cord_y}}, {{zoom}}, {{user_id}}, {{elem_selected}}, j), false);
+                                        pol.addEventListener("mouseup", mouse_up.bind(null, {{status}}, {{cord_x}}, {{cord_y}}, {{zoom}}, {{user_id}}, {{rounds}}), false);
+                                        var pol = svgDoc.querySelector("#c" + j);
+                                        pol.addEventListener("mousedown", add_moving_point.bind(null, {{status}}, {{center_points}}[j][0], {{center_points}}[j][1], {{user_id}}, {{elem_selected}}, j), false);
+                                        pol.addEventListener("mouseup", mouse_up.bind(null, {{status}}, {{cord_x}}, {{cord_y}}, {{zoom}}, {{user_id}}, {{rounds}}), false);
+                                    }
+                                }
+                                if ({{status}} == 2) {
+                                    var pol = svgDoc.querySelector("#last_point");
+                                    if (pol) {
+                                        pol.addEventListener("mousedown", remove_last_point.bind(null, {{user_id}}), false);
+                                    }
+                                }
                             }, false);
                         });
                     </script>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    {% if status == 0 and access == 'admin'%}
+                        <p><input type="button" value="Редактор" onclick="change_status(1, {{user_id}})"></p>
+                    {% elif status == 1 %}
+                        <p><input type="button" value="Выйти из редактора" onclick="change_status(0, {{user_id}})"></p>
+                        <p><input type="button" value="Добавить фигуру" onclick="change_status(2, {{user_id}})"></p>
+                        <p><input type="button" value="Добавить метку" onclick="change_status(3, {{user_id}})"></p>
+                        {% if elem_selected != -1 %}
+                            <p><input type="button" value="Удалить фигуру" onclick="remove_shape({{elem_selected}})"></p>
+                            <p><input type="button" value="Добавить кадр" onclick="add_frame({{elem_selected}}, {{user_id}})"></p>
+                        {% elif point_selected != -1 %}
+                            <p><input type="button" value="Удалить метку" onclick="remove_mark({{point_selected}}, {{user_id}})"></p>
+                        {% endif %}
+                    {% elif status == 2 %}
+                        <p><input type="button" value="Готово" onclick="end_adding_shape(1, {{user_id}})"></p>
+                        <p><input type="button" value="Отмена" onclick="end_adding_shape(0, {{user_id}})"></p>
+                    {% elif status == 3 %}
+                        <p><input type="button" value="Отмена" onclick="end_adding_shape(0, {{user_id}})"></p>
+                    {% endif %}
+                </td>
+                <td>
+                    <table align="center" width="50%">
+                        <tr>
+                            <td width="10%"><a href="http://127.0.0.1:5000/{{lang}}/change_date/0/2">
+                                <img width="64" src="/static/img/last_year.png" alt="">
+                            </a></td>
+                            <td width="10%"><a href="http://127.0.0.1:5000/{{lang}}/change_date/1/2">
+                                <img width="64" src="/static/img/last_month.png" alt="">
+                            </a></td>
+                            <td width="10%"><a href="http://127.0.0.1:5000/{{lang}}/change_date/2/2">
+                                <img width="64" src="/static/img/last_day.png" alt="">
+                            </a></td>
+                            <td width="40%" align="center">
+                                <form class="mark_form" method="post">
+                                    <input type="date" id="date" name="trip-date" value="{{date}}" min="1931-2-20" max="1932-12-31">
+                                    <button type="submit" class="btn btn-primary" name="submit_button" value="date_change">Перейти</button>
+                                </form>
+                            </td>
+                            <td width="10%"><a href="http://127.0.0.1:5000/{{lang}}/change_date/2/1">
+                                <img width="64" src="/static/img/next_day.png" alt="">
+                            </a></td>
+                            <td width="10%"><a href="http://127.0.0.1:5000/{{lang}}/change_date/1/1">
+                                <img width="64" src="/static/img/next_month.png" alt="">
+                            </a></td>
+                            <td width="10%"><a href="http://127.0.0.1:5000/{{lang}}/change_date/0/1">
+                                <img width="64" src="/static/img/next_year.png" alt="">
+                            </a></td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td></td>
+                <td>
+                    <table align="center" width="50%">
+                        <tr>
+                            {% if status == 1 %}
+                                {% if elem_selected != -1 %}
+                                    <form class="name_form" method="post">
+                                        <input type="text" class="form-control" id="name0" name="name" value="{{name_elem}}">
+                                        <div class="form-group form-check">
+                                            <input type="checkbox" class="form-check-input" id="acceptRules" name="accept">
+                                            <label class="form-check-label" for="acceptRules">Новое название?</label>
+                                        </div>
+                                        <button type="submit" class="btn btn-primary" name="submit_button" value="shape_name_change">Готово</button>
+                                    </form>
+                                    <form class="color_form" method="post">
+                                        <div>Цвета: Красный
+                                            <input type="number" name="r" value="{{r}}" min="0" max="255" step="1">
+                                            Зелённый
+                                            <input type="number" name="g" value="{{g}}" min="0" max="255" step="1">
+                                            Синий
+                                            <input type="number" name="b" value="{{b}}" min="0" max="255" step="1">
+                                        </div>
+                                        <button type="submit" class="btn btn-primary" name="submit_button" value="shape_change">Готово</button>
+                                    </form>
+                                {% elif point_selected != -1 %}
+                                    <form class="mark_form" method="post">
+                                        <input type="text" class="form-control" id="name" placeholder="Название события" name="name" value="{{name_point}}">
+                                        <div class="form-group">
+                                            <label for="info">Информация о событии</label>
+                                            <textarea class="form-control" id="info" rows="3" name="about">{{text_point}}</textarea>
+                                        </div>
+                                        <label for="end">Конечная дата</label>
+                                        <input type="date" id="end" name="trip-end" value="{{end_date}}" min="{{start_date}}" max="9999-12-31">
+                                        <button type="submit" class="btn btn-primary" name="submit_button" value="mark_change">Готово</button>
+                                    </form>
+                                {% endif %}
+                            {% elif status == 0 %}
+                                {% if elem_selected != -1 %}
+                                    <form class="login_form" method="post">
+                                        <input type="text" class="form-control" id="name2" disabled="disabled" name="name" value="{{name_elem}}">
+                                    </form>
+                                {% elif point_selected != -1 %}
+                                    <form class="login_form" method="post">
+                                        <input type="text" class="form-control" id="name1" disabled="disabled" name="name" value="{{name_point}}">
+                                        <div class="form-group">
+                                            <textarea class="form-control" id="info1" disabled="disabled" rows="3" name="about">{{text_point}}</textarea>
+                                        </div>
+                                    </form>
+                                {% endif %}
+                            {% endif %}
+                        </tr>
+                    </table>
                 </td>
             </tr>
         </table>

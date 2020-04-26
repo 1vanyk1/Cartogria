@@ -7,8 +7,8 @@ association_table = sqlalchemy.Table('association', SqlAlchemyBase.metadata,
                                                        sqlalchemy.ForeignKey('access.id')))
 
 
-class Access(SqlAlchemyBase):
+class Access(SqlAlchemyBase):  # Уровень доступа к базе данных
     __tablename__ = 'access'
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True,
                            autoincrement=True)
-    level = sqlalchemy.Column(sqlalchemy.String)
+    level = sqlalchemy.Column(sqlalchemy.String, default='new')

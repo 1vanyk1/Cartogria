@@ -7,7 +7,7 @@ from flask_login import UserMixin
 from sqlalchemy_serializer import SerializerMixin
 
 
-class User(SqlAlchemyBase, UserMixin, SerializerMixin):
+class User(SqlAlchemyBase, UserMixin, SerializerMixin):  # Пользователь
     __tablename__ = 'users'
     id = sqlalchemy.Column(sqlalchemy.Integer,
                            primary_key=True, autoincrement=True)
@@ -16,6 +16,7 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     hashed_password = sqlalchemy.Column(sqlalchemy.String)
     modified_date = sqlalchemy.Column(sqlalchemy.DateTime, default=datetime.datetime.now)
     access = orm.relation("Access", secondary="association", backref="users")
+    position = orm.relation("Position", secondary="position", backref="users")
 
     def __repr__(self):
         return ' '.join(['<User>', self.id, self.login])

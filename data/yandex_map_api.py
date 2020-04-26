@@ -2,26 +2,25 @@ import requests
 import math
 
 
-def get_map(toponym_coodrinates, corners, map_type='sat', pt=None):
+def get_map(toponym_coodrinates, corners, map_type='sat', pt=None):  # Получаем карту
     api_server = "http://static-maps.yandex.ru/1.x/"
     params = {"ll": toponym_coodrinates,
               "z": corners,
               "l": map_type,
-              'size': '600,450',
-              'pt': '47.05047812901647,85.55901918847962,org'}
+              'size': '600,450'}
     if pt is not None:
         params['pt'] = pt
     request = requests.get(api_server, params=params)
     return request
 
 
-def get_map_source(x, y, corners):
+def get_map_source(x, y, corners):  # Получаем ардес карты
     map_source = "http://static-maps.yandex.ru/1.x/?ll=" + ','.join([x, y]) + '&z=' + \
-                 corners + '&l=map&size=600,450&pt=76.331270,40.360061,org'
+                 corners + '&l=map&size=600,450'
     return map_source
 
 
-def search(geocode):
+def search(geocode):  # Ищем объект на карте (по названию)
     geocoder_api_server = "http://geocode-maps.yandex.ru/1.x/"
     geocoder_params = {
         "apikey": "40d1649f-0493-4b70-98ba-98533de7710b",
@@ -30,7 +29,7 @@ def search(geocode):
     return requests.get(geocoder_api_server, params=geocoder_params)
 
 
-def map_request(name):
+def map_request(name):  # Запрос к карте
     map_l = 'map'
     geocoder_request = "http://geocode-maps.yandex.ru/1.x/?apikey=" \
                        "40d1649f-0493-4b70-98ba-98533de7710b&geocode=" + name + "&format=json"
@@ -46,7 +45,7 @@ def map_request(name):
            corners + "&l=" + map_l
 
 
-def distance(a, b):
+def distance(a, b):  # Расстояние между двумя объектами
     degree_to_meters_factor = 111 * 1000
     a_lon, a_lat = a
     b_lon, b_lat = b
