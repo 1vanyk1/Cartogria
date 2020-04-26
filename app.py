@@ -3,6 +3,7 @@ try:  # Импортирование заголовков
     from flask_headers import headers
 except BaseException:
     from flask.ext.headers import headers
+import os
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField, BooleanField
 from wtforms.fields.html5 import EmailField
@@ -899,4 +900,5 @@ def login(lang):
 if __name__ == '__main__':  # Запуск
     db_session.global_init("db/database.sqlite")
     app.register_blueprint(users_api.blueprint)
-    app.run(port=5000, host='127.0.0.1')
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
