@@ -1,5 +1,5 @@
 requests==2.23.0
-Flask==1.1.2
+Flask==2.3.2
 Flask-Headers==1.0
 Flask-WTF==0.14.3
 Flask-RESTful==0.3.8
